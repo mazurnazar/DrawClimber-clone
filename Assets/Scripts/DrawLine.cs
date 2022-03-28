@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class DrawLine : MonoBehaviour
 {
-    public GameObject linePref;
-    public GameObject currentLine;
-    public GameObject drawObject;
-    public GameObject draw;
-    public GameObject foot1, foot2;
-    public GameObject Player;
-    public LineRenderer lineRenderer;
-    public List<Vector2> fingerPos;
-    public List<Vector2> newPos;
+    [SerializeField] GameObject linePref;
+    GameObject currentLine;
+    [SerializeField] GameObject drawObject;
+    GameObject draw;
+    [SerializeField] GameObject foot1, foot2;
+    [SerializeField] GameObject Player;
+    [SerializeField] LineRenderer lineRenderer;
+    List<Vector2> fingerPos;
+    List<Vector2> newPos;
     Camera cam;
     [SerializeField]Animator playerAnim;
     PlayerMovement playerMovement;
@@ -21,16 +21,24 @@ public class DrawLine : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        fingerPos = new List<Vector2>();
+        newPos = new List<Vector2>();
         cam = Camera.main;
         playerMovement = GameObject.Find("Player").GetComponent<PlayerMovement>();
     }
 
     // Update is called once per frame
+    private void LateUpdate()
+    {
+        cam.transform.position = new Vector3(Player.transform.position.x, Player.transform.position.y, cam.transform.position.z);
+    }
     void Update()
     {
-        // setting camera position to player position
-        cam.transform.position = new Vector3(Player.transform.position.x,cam.transform.position.y, cam.transform.position.z);
-        // if mouse is pressed
+        MousePress();
+       
+    }
+    void MousePress()
+    {
         if (Input.GetMouseButtonDown(0))
         {
             // putting the ray into screen
@@ -40,9 +48,8 @@ public class DrawLine : MonoBehaviour
             {
                 // stop player
                 playerMovement.isGameStop = true;
-                Player.transform.position += Player.transform.forward * 0;
+                playerAnim.enabled = false;
                 //create line
-                playerAnim.SetInteger("walk", 0);
                 CreateLine();
             }
             else
@@ -50,39 +57,39 @@ public class DrawLine : MonoBehaviour
                 Destroy(currentLine);
                 return;
             }
-            
+
         }
         if (Input.GetMouseButton(0))
         {
             // updating line if mouse is pressed
             Vector2 tempFingerPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            if (Vector2.Distance(tempFingerPos, fingerPos[fingerPos.Count - 1]) > .1f&& lineRenderer !=null)
+            if (Vector2.Distance(tempFingerPos, fingerPos[fingerPos.Count - 1]) > .1f && lineRenderer != null)
             {
                 UpddateLine(tempFingerPos);
             }
-            
+
         }
         if (Input.GetMouseButtonUp(0))
         {
             //drawObject = currentLine;
             // when mouse is unpressed
             newPos = UpdateList(fingerPos);
-            
-             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-             RaycastHit hit;
-             if (Physics.Raycast(Ray, out hit) && lineRenderer != null)
-             {
-                
+
+            var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(Ray, out hit) && lineRenderer != null)
+            {
+
                 CreateMesh(foot1);
                 CreateMesh(foot2);
             }
             Destroy(currentLine);
-            playerAnim.SetInteger("walk", 1);
+            playerAnim.enabled = true;
             playerMovement.isGameStop = false;
+
 
         }
     }
-
     void CreateLine()
     {
 
@@ -114,8 +121,7 @@ public class DrawLine : MonoBehaviour
             draw.transform.parent = meshObject.transform;
 
         }
-     
-         Combine(meshObject);
+        Combine(meshObject);
     }
     void Combine(GameObject meshObject)
     {
@@ -136,7 +142,7 @@ public class DrawLine : MonoBehaviour
             i++;
             
         }
-      
+        
         meshObject.gameObject.GetComponent<MeshFilter>().mesh = new Mesh();
         meshObject.gameObject.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true);
         meshObject.gameObject.GetComponent<MeshFilter>().mesh.RecalculateBounds();
@@ -166,6 +172,8 @@ public class DrawLine : MonoBehaviour
         }
         return positions;
     }
+
+   
 }
 
 
